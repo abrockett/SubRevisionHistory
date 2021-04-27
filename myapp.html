@@ -27,6 +27,16 @@
                 getDisplayBox: function () {
                     return this.down('#display_box');
                 },
+                getStartDate: function () {
+                    return this.down('#startDate').getValue();
+                },
+                getEndDate: function () {
+                    if (this.down('#endDate').getValue()) {
+                        //we are adding a day since the datepicker gives us the new day at midnight.
+                        return Rally.util.DateTime.add(this.down('#endDate').getValue(), 'day', 1);
+                    }
+                    return null;
+                },
 
                 launch: function () {
                     var that = this;
@@ -114,6 +124,9 @@
 
                 _addPickers: function() {
                     this.getSelectorBox().removeAll();
+                    var defaultToDate = new Date();
+                    defaultToDate.setDate(defaultToDate.getDate() - 30);
+
                     this.getSelectorBox().add({
                         xtype: 'container',
                         layout: 'hbox',
@@ -121,6 +134,7 @@
                         items: [{
                             xtype: 'rallydatefield',
                             itemId: 'startDate',
+                            value:  defaultToDate,
                             fieldLabel: 'Date from',
                             labelAlign: 'right',
                             labelWidth: 100,
@@ -130,6 +144,7 @@
                         }, {
                             xtype: 'rallydatefield',
                             itemId: 'endDate',
+                            value: new Date(),
                             fieldLabel: 'to',
                             labelAlign: 'right',
                             labelWidth: 25,
