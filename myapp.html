@@ -7,6 +7,7 @@
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
 
     <script type="text/javascript">
+        //ToDo: get rid of artifacts, get rid of double Subscription endpoint request
         Rally.onReady(function () {
             Ext.define('CustomApp', {
                 extend: 'Rally.app.App',
@@ -18,7 +19,7 @@
                 ],
 
                 integrationHeaders: {
-                    name: "portfolio-predictability-productivity"
+                    name: "Subscription Revisions App"
                 },
 
                 getSelectorBox: function () {
@@ -68,12 +69,14 @@
                         }
                     });
                 },
+
                 _getRevHistoryModel: function (artifacts) {
                     this._artifacts = artifacts;
                     return Rally.data.ModelFactory.getModel({
                         type: 'RevisionHistory'
                     });
                 },
+
                 _onRevHistoryModelCreated: function (model) {
                     var that = this;
                     var promises = [];
@@ -87,21 +90,23 @@
 
                 _onModelLoaded: function (histories) {
                     var promises = [];
-                    _.each(histories, function (history) {
-                        var revisions = history.get('Revisions');
-                        var dateLimit = new Date();
-                        dateLimit.setDate(dateLimit.getDate() - 30);
-                        var dateString = dateLimit.toISOString();
-                        revisions.store = history.getCollection('Revisions', {
-                            fetch: ['User', 'Description', 'CreationDate', 'RevisionNumber'],
-                            filters: [{
-                                property: 'CreationDate',
-                                operator: '>',
-                                value: dateString
-                            }]
-                        });
-                        promises.push(revisions.store.load());
+                    var history = histories[0];
+                    var revisions = history.get('Revisions');
+                    var startDateString = this.getStartDate().toISOString();
+                    var endDateString = this.getEndDate().toISOString();
+                    revisions.store = history.getCollection('Revisions', {
+                        fetch: ['User', 'Description', 'CreationDate', 'RevisionNumber'],
+                        filters: [{
+                            property: 'CreationDate',
+                            operator: '>=',
+                            value: startDateString
+                            }, {
+                            property: 'CreationDate',
+                            operator: '<=',
+                            value: endDateString
+                        }]
                     });
+                    promises.push(revisions.store.load());
                     return Deft.Promise.all(promises);
                 },
 
