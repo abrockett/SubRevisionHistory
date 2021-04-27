@@ -3,7 +3,7 @@
 <head>
     <title>Revisions by User</title>
 
-    <script type="text/javascript" src="/apps/2.0rc3/sdk.js"></script>
+    <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
 
     <script type="text/javascript">
         Rally.onReady(function () {
@@ -65,11 +65,10 @@
         var dateString = dateLimit.toISOString();
         revisions.store = history.getCollection('Revisions',{
             fetch:['User','Description','CreationDate', 'RevisionNumber'], 
-            pageSize:10,
             filters: [
                 {
                  property: 'CreationDate',
-                 operator: '<',
+                 operator: '>',
                  value: dateString
                 }
             ]
@@ -120,7 +119,7 @@
                 {
                     text: 'Date',dataIndex: 'CreationDate',
                     renderer:function(value){
-                        return value
+                        return value.toDateString();
                     }
                 },
                 {
