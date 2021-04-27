@@ -25,7 +25,6 @@
                     Ext.create('Rally.data.WsapiDataStore',{
                         autoLoad: true,
                         model: 'User Story',
-                        limit: 1,
                         fetch: ['RevisionHistory','Revisions','FormattedID','Name','RevisionNumber','CreationDate','User'],
                         listeners: {
                             load: function(store,data,success) {
