@@ -12,7 +12,6 @@
     componentCls: 'app',
     _artifacts:[],
     launch: function() {
-        var today = new Date().toISOString();
         var that = this;
         var artifacts = Ext.create('Rally.data.wsapi.Store', {
             model: 'Subscription',
@@ -61,9 +60,19 @@
       var promises = [];
       _.each(histories, function(history){
         var revisions = history.get('Revisions');
+        var dateLimit = new Date();
+        dateLimit.setDate(dateLimit.getDate() - 30);
+        var dateString = dateLimit.toISOString();
         revisions.store = history.getCollection('Revisions',{
             fetch:['User','Description','CreationDate', 'RevisionNumber'], 
-            pageSize:1
+            pageSize:10,
+            filters: [
+                {
+                 property: 'CreationDate',
+                 operator: '<',
+                 value: dateString
+                }
+            ]
         });
         promises.push(revisions.store.load());
       });
@@ -93,33 +102,31 @@
             showRowActionsColumn: false,
             editable: false,
             store: Ext.create('Rally.data.custom.Store', {
-                data: artifactsWithRevs
+                data: artifactsWithRevs[0].revisions
             }),
             columnCfgs: [
                 {
-                    text: 'ObjectID', dataIndex: 'artifact', 
+                    text: 'User', dataIndex: 'User', 
                       renderer:function(value){
-                        return value.ObjectID;
+                        return value._refObjectName;
                     }
                 },
                 {
-                    text: 'Revision author',dataIndex: 'revisions',
+                    text: 'Revision number',dataIndex: 'RevisionNumber',
                     renderer:function(value){
-                        var html = [];
-                        _.each(value, function(rev){
-                            html.push(rev.data.User._refObjectName);
-                        });
-                        return html.join('</br></br>');
+                        return value
                     }
                 },
                 {
-                    text: 'Revision # and description',dataIndex: 'revisions', flex:1,
+                    text: 'Date',dataIndex: 'CreationDate',
                     renderer:function(value){
-                        var html = [];
-                        _.each(value, function(rev){
-                            html.push(rev.data.RevisionNumber + " " + rev.data.Description);
-                        });
-                        return html.join('</br></br>');
+                        return value
+                    }
+                },
+                {
+                    text: 'Description',dataIndex: 'Description',flex:1,
+                    renderer:function(value){
+                        return value
                     }
                 }
             ]
