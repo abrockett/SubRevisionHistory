@@ -12,7 +12,7 @@
             Ext.define('CustomApp', {
                 extend: 'Rally.app.App',
                 componentCls: 'app',
-                _artifacts: [],
+                _subscriptions: [],
                 items: [
                     { xtype: 'container', itemId: 'selector_box' },
                     { xtype: 'container', itemId: 'display_box' }
@@ -33,7 +33,7 @@
                 },
                 getEndDate: function () {
                     if (this.down('#endDate').getValue()) {
-                        //we are adding a day since the datepicker gives us the new day at midnight.
+                        //add a day since the datepicker gives us the new day at midnight.
                         return Rally.util.DateTime.add(this.down('#endDate').getValue(), 'day', 1);
                     }
                     return null;
@@ -41,14 +41,14 @@
 
                 launch: function () {
                     var that = this;
-                    var artifacts = Ext.create('Rally.data.wsapi.Store', {
+                    var subStore = Ext.create('Rally.data.wsapi.Store', {
                         model: 'Subscription',
                         fetch: ['ObjectID', 'RevisionHistory', 'Revisions', 'Description', 'User'],
                         autoLoad: true
                     });
                     this._addPickers();
 
-                    artifacts.load().then({
+                    subStore.load().then({
                         success: this._getRevHistoryModel,
                         scope: this
                     }).then({
@@ -70,21 +70,18 @@
                     });
                 },
 
-                _getRevHistoryModel: function (artifacts) {
-                    this._artifacts = artifacts;
+                _getRevHistoryModel: function (subs) {
+                    this._subscriptions = subs;
                     return Rally.data.ModelFactory.getModel({
                         type: 'RevisionHistory'
                     });
                 },
 
                 _onRevHistoryModelCreated: function (model) {
-                    var that = this;
                     var promises = [];
-                    _.each(this._artifacts, function (artifact) {
-                        var ref = artifact.get('RevisionHistory')._ref;
-                        console.log(artifact.get('ObjectID'), ref);
-                        promises.push(model.load(Rally.util.Ref.getOidFromRef(ref)));
-                    });
+                    var subscription = this._subscriptions[0];
+                    var ref = subscription.get('RevisionHistory')._ref;
+                    promises.push(model.load(Rally.util.Ref.getOidFromRef(ref)));
                     return Deft.Promise.all(promises);
                 },
 
@@ -113,7 +110,7 @@
                 _stitchDataTogether: function (revhistories) {
                     var that = this;
                     var artifactsWithRevs = [];
-                    _.each(that._artifacts, function (artifact) {
+                    _.each(that._subscriptions, function (artifact) {
                         artifactsWithRevs.push({
                             artifact: artifact.data
                         });
