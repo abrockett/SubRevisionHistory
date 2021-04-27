@@ -1,23 +1,42 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Revisions by User</title>
 
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
 
     <script type="text/javascript">
-        Rally.onReady(function() {
+        Rally.onReady(function () {
             Ext.define('CustomApp', {
                 extend: 'Rally.app.App',
                 componentCls: 'app',
                 _artifacts: [],
-                launch: function() {
+                items: [
+                    { xtype: 'container', itemId: 'selector_box' },
+                    { xtype: 'container', itemId: 'display_box' }
+                ],
+
+                integrationHeaders: {
+                    name: "portfolio-predictability-productivity"
+                },
+
+                getSelectorBox: function () {
+                    return this.down('#selector_box');
+                },
+                getDisplayBox: function () {
+                    return this.down('#display_box');
+                },
+
+                launch: function () {
                     var that = this;
                     var artifacts = Ext.create('Rally.data.wsapi.Store', {
                         model: 'Subscription',
                         fetch: ['ObjectID', 'RevisionHistory', 'Revisions', 'Description', 'User'],
                         autoLoad: true
                     });
+                    this._addPickers();
+
                     artifacts.load().then({
                         success: this._getRevHistoryModel,
                         scope: this
@@ -31,24 +50,24 @@
                         success: this._stitchDataTogether,
                         scope: this
                     }).then({
-                        success: function(results) {
+                        success: function (results) {
                             that._makeGrid(results);
                         },
-                        failure: function() {
+                        failure: function () {
                             console.log("oh noes!");
                         }
                     });
                 },
-                _getRevHistoryModel: function(artifacts) {
+                _getRevHistoryModel: function (artifacts) {
                     this._artifacts = artifacts;
                     return Rally.data.ModelFactory.getModel({
                         type: 'RevisionHistory'
                     });
                 },
-                _onRevHistoryModelCreated: function(model) {
+                _onRevHistoryModelCreated: function (model) {
                     var that = this;
                     var promises = [];
-                    _.each(this._artifacts, function(artifact) {
+                    _.each(this._artifacts, function (artifact) {
                         var ref = artifact.get('RevisionHistory')._ref;
                         console.log(artifact.get('ObjectID'), ref);
                         promises.push(model.load(Rally.util.Ref.getOidFromRef(ref)));
@@ -56,9 +75,9 @@
                     return Deft.Promise.all(promises);
                 },
 
-                _onModelLoaded: function(histories) {
+                _onModelLoaded: function (histories) {
                     var promises = [];
-                    _.each(histories, function(history) {
+                    _.each(histories, function (history) {
                         var revisions = history.get('Revisions');
                         var dateLimit = new Date();
                         dateLimit.setDate(dateLimit.getDate() - 30);
@@ -76,16 +95,16 @@
                     return Deft.Promise.all(promises);
                 },
 
-                _stitchDataTogether: function(revhistories) {
+                _stitchDataTogether: function (revhistories) {
                     var that = this;
                     var artifactsWithRevs = [];
-                    _.each(that._artifacts, function(artifact) {
+                    _.each(that._artifacts, function (artifact) {
                         artifactsWithRevs.push({
                             artifact: artifact.data
                         });
                     });
                     var i = 0;
-                    _.each(revhistories, function(revisions) {
+                    _.each(revhistories, function (revisions) {
                         artifactsWithRevs[i].revisions = revisions;
                         i++;
                     });
@@ -93,10 +112,9 @@
 
                 },
 
-                _makeGrid: function(artifactsWithRevs) {
-                    console.log(artifactsWithRevs);
-
-                    this.add({
+                _addPickers: function() {
+                    this.getSelectorBox().removeAll();
+                    this.getSelectorBox().add({
                         xtype: 'container',
                         layout: 'hbox',
                         margin: '10 0 0 0',
@@ -127,7 +145,13 @@
                             }
                         }]
                     });
-                    this.add({
+                },
+
+                _makeGrid: function (artifactsWithRevs) {
+                    console.log(artifactsWithRevs);
+
+                    this.getDisplayBox().removeAll();
+                    this.getDisplayBox().add({
                         xtype: 'rallygrid',
                         showPagingToolbar: true,
                         showRowActionsColumn: false,
@@ -136,34 +160,34 @@
                             data: artifactsWithRevs[0].revisions
                         }),
                         columnCfgs: [{
-                                text: 'User',
-                                dataIndex: 'User',
-                                renderer: function(value) {
-                                    return value._refObjectName;
-                                }
-                            },
-                            {
-                                text: 'Revision number',
-                                dataIndex: 'RevisionNumber',
-                                renderer: function(value) {
-                                    return value
-                                }
-                            },
-                            {
-                                text: 'Date',
-                                dataIndex: 'CreationDate',
-                                renderer: function(value) {
-                                    return value.toDateString();
-                                }
-                            },
-                            {
-                                text: 'Description',
-                                dataIndex: 'Description',
-                                flex: 1,
-                                renderer: function(value) {
-                                    return value
-                                }
+                            text: 'User',
+                            dataIndex: 'User',
+                            renderer: function (value) {
+                                return value._refObjectName;
                             }
+                        },
+                        {
+                            text: 'Revision number',
+                            dataIndex: 'RevisionNumber',
+                            renderer: function (value) {
+                                return value
+                            }
+                        },
+                        {
+                            text: 'Date',
+                            dataIndex: 'CreationDate',
+                            renderer: function (value) {
+                                return value.toDateString();
+                            }
+                        },
+                        {
+                            text: 'Description',
+                            dataIndex: 'Description',
+                            flex: 1,
+                            renderer: function (value) {
+                                return value
+                            }
+                        }
                         ]
                     });
 
@@ -179,5 +203,7 @@
         });
     </script>
 </head>
+
 <body></body>
+
 </html>
