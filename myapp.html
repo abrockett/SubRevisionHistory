@@ -98,7 +98,7 @@
                         success: this._onRevHistoryModelLoaded,
                         scope: this
                     }).then({
-                        success: this._stitchDataTogether,
+                        success: this._getHistoryForFirstSubscription,
                         scope: this
                     }).then({
                         success: function (results) {
@@ -147,26 +147,12 @@
                     return Deft.Promise.all(promises);
                 },
 
-                _stitchDataTogether: function (revhistories) {
-                    var that = this;
-                    var artifactsWithRevs = [];
-                    _.each(that._subscriptions, function (artifact) {
-                        artifactsWithRevs.push({
-                            artifact: artifact.data
-                        });
-                    });
-                    var i = 0;
-                    _.each(revhistories, function (revisions) {
-                        artifactsWithRevs[i].revisions = revisions;
-                        i++;
-                    });
-                    return artifactsWithRevs;
-
+                _getHistoryForFirstSubscription: function (revhistories) {
+                    return revhistories[0];
                 },
 
-
-                _makeGrid: function (artifactsWithRevs) {
-                    console.log(artifactsWithRevs);
+                _makeGrid: function (revs) {
+                    console.log(revs);
 
                     this.getDisplayBox().removeAll();
                     this.getDisplayBox().add({
@@ -175,7 +161,7 @@
                         showRowActionsColumn: false,
                         editable: false,
                         store: Ext.create('Rally.data.custom.Store', {
-                            data: artifactsWithRevs[0].revisions
+                            data: revs
                         }),
                         columnCfgs: [{
                             text: 'User',
