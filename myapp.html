@@ -8,7 +8,6 @@
 
     <script type="text/javascript">
         //ToDo: get rid of double Subscription endpoint request, tune performance
-        //ToDo: add wait spinner
 
         Rally.onReady(function () {
             Ext.define('CustomApp', {
@@ -68,7 +67,7 @@
                             labelSeparator: ''
                         }, {
                             xtype: 'rallybutton',
-                            text: 'Update',
+                            text: 'Get Revisions',
                             margin: '0 10 0 10',
                             listeners: {
                                 click: this.updateView,
