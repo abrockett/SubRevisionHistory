@@ -15,6 +15,7 @@
                 extend: 'Rally.app.App',
                 componentCls: 'app',
                 _subscriptions: [],
+                _subscriptionRevHistory: null,
                 items: [
                     { xtype: 'container', itemId: 'selector_box' },
                     { xtype: 'container', itemId: 'display_box' }
@@ -79,7 +80,40 @@
 
                 updateView: function() {
                     this.getDisplayBox().removeAll();
-                    //this.launch();
+                    this.loadRevisions();
+                },
+
+                getRevisionsByDate: function () {
+                    var promises = [];
+                    var revisions = this._subscriptionRevHistory.get('Revisions');
+                    var startDateString = this.getStartDate().toISOString();
+                    var endDateString = this.getEndDate().toISOString();
+                    revisions.store = this._subscriptionRevHistory.getCollection('Revisions', {
+                        fetch: ['User', 'Description', 'CreationDate', 'RevisionNumber'],
+                        filters: [{
+                            property: 'CreationDate',
+                            operator: '>=',
+                            value: startDateString
+                            }, {
+                            property: 'CreationDate',
+                            operator: '<=',
+                            value: endDateString
+                        }]
+                    });
+                    promises.push(revisions.store.load());
+                    return Deft.Promise.all(promises);
+                },
+
+                loadRevisions: function() {
+                    var that = this;
+                    this.getRevisionsByDate().then({
+                        success: function (results) {
+                            that._makeGrid(results);
+                        },
+                        failure: function () {
+                            console.log("oh noes!");
+                        }
+                    });
                 },
 
                 launch: function () {
@@ -101,16 +135,6 @@
                     }).then({
                         success: this._onRevHistoryModelLoaded,
                         scope: this
-                    }).then({
-                        success: this._getHistoryForFirstSubscription,
-                        scope: this
-                    }).then({
-                        success: function (results) {
-                            that._makeGrid(results);
-                        },
-                        failure: function () {
-                            console.log("oh noes!");
-                        }
                     });
                 },
 
@@ -130,34 +154,10 @@
                 },
 
                 _onRevHistoryModelLoaded: function (histories) {
-                    var promises = [];
-                    var history = histories[0];
-                    var revisions = history.get('Revisions');
-                    var startDateString = this.getStartDate().toISOString();
-                    var endDateString = this.getEndDate().toISOString();
-                    revisions.store = history.getCollection('Revisions', {
-                        fetch: ['User', 'Description', 'CreationDate', 'RevisionNumber'],
-                        filters: [{
-                            property: 'CreationDate',
-                            operator: '>=',
-                            value: startDateString
-                            }, {
-                            property: 'CreationDate',
-                            operator: '<=',
-                            value: endDateString
-                        }]
-                    });
-                    promises.push(revisions.store.load());
-                    return Deft.Promise.all(promises);
-                },
-
-                _getHistoryForFirstSubscription: function (revhistories) {
-                    return revhistories[0];
+                    this._subscriptionRevHistory = histories[0];
                 },
 
                 _makeGrid: function (revs) {
-                    console.log(revs);
-
                     this.getDisplayBox().removeAll();
                     this.getDisplayBox().add({
                         xtype: 'rallygrid',
@@ -165,7 +165,7 @@
                         showRowActionsColumn: false,
                         editable: false,
                         store: Ext.create('Rally.data.custom.Store', {
-                            data: revs
+                            data: revs[0]
                         }),
                         columnCfgs: [{
                             text: 'User',
