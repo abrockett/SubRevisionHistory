@@ -7,7 +7,9 @@
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
 
     <script type="text/javascript">
-        //ToDo: get rid of artifacts, get rid of double Subscription endpoint request
+        //ToDo: get rid of double Subscription endpoint request, tune performance
+        //ToDo: add wait spinner
+
         Rally.onReady(function () {
             Ext.define('CustomApp', {
                 extend: 'Rally.app.App',
@@ -17,10 +19,6 @@
                     { xtype: 'container', itemId: 'selector_box' },
                     { xtype: 'container', itemId: 'display_box' }
                 ],
-
-                integrationHeaders: {
-                    name: "Subscription Revisions App"
-                },
 
                 getSelectorBox: function () {
                     return this.down('#selector_box');
@@ -72,11 +70,16 @@
                             text: 'Update',
                             margin: '0 10 0 10',
                             listeners: {
-                                //click: this.updateView,
+                                click: this.updateView,
                                 scope: this
                             }
                         }]
                     });
+                },
+
+                updateView: function() {
+                    this.getDisplayBox().removeAll();
+                    //this.launch();
                 },
 
                 launch: function () {
@@ -86,6 +89,7 @@
                         fetch: ['ObjectID', 'RevisionHistory', 'Revisions', 'Description', 'User'],
                         autoLoad: true
                     });
+
                     this.addPickers();
 
                     subStore.load().then({
@@ -200,7 +204,7 @@
             });
 
             Rally.launchApp('CustomApp', {
-                name: "Revisions by User",
+                name: "App: Subscription Revisions by Date Range",
                 parentRepos: ""
             });
 
