@@ -1,6 +1,6 @@
 # SubRevisionHistory
 
-This repository contains an app (App.html) that queries a Rally Subscription object for revisions made between two dates.  
+This repository contains an app (App.html) that queries a Rally Subscription for revisions made between two dates.  
 
 For large subscriptions, the initial model loads may take some time, during which the Get Revisions button is disabled.  Once the button is enabled, select a start and end date and click the button to load the data.  
 
