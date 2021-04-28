@@ -37,6 +37,10 @@
                     return null;
                 },
 
+                getUpdateButton: function () {
+                    return this.down('#updateButton');
+                },
+
                 addPickers: function() {
                     this.getSelectorBox().removeAll();
                     var defaultToDate = new Date();
@@ -67,6 +71,7 @@
                             labelSeparator: ''
                         }, {
                             xtype: 'rallybutton',
+                            itemId: 'updateButton',
                             text: 'Get Revisions',
                             margin: '0 10 0 10',
                             listeners: {
@@ -126,6 +131,8 @@
                     });
 
                     this.addPickers();
+                    this.setLoading(true);
+                    this.getUpdateButton().setDisabled(true);
 
                     subStore.load().then({
                         success: this._getRevHistoryModel,
@@ -136,7 +143,10 @@
                     }).then({
                         success: this._onRevHistoryModelLoaded,
                         scope: this
-                    });
+                    }).always(function(){
+                        this.setLoading(false);
+                        this.getUpdateButton().setDisabled(false);
+                    }, this);;
                 },
 
                 _getRevHistoryModel: function (subs) {
