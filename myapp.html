@@ -106,6 +106,8 @@
 
                 loadRevisions: function() {
                     var that = this;
+                    this.setLoading(true);
+
                     this.getRevisionsByDate().then({
                         success: function (results) {
                             that._makeGrid(results);
@@ -113,7 +115,7 @@
                         failure: function () {
                             console.log("oh noes!");
                         }
-                    });
+                    }).always(function(){this.setLoading(false);}, this);
                 },
 
                 launch: function () {
