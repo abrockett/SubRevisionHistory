@@ -1,10 +1,12 @@
-# SubRevisionHistory
+# SubscriptionRevisionsByDate
 
 This repository contains an app (App.html) that queries a Rally Subscription for revisions made between two dates.  
 
 For large subscriptions, the initial model loads may take some time, during which the Get Revisions button is disabled.  Once the button is enabled, select a start and end date and click the button to load the data.  
 
 Again for large subscriptions, the initial revisions query may time out, and no data will be returned.  If this happens, simply click the Get Revisions button again, and the request will likely succeed because enough data has been cached that the request will not time out.
+
+Once revisions have successfully been obtained, you can export to CSV using the Export button.
 
 Grateful acknowledgement to the following authors and their apps for inspiration:
 
