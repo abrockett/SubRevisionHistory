@@ -7,7 +7,6 @@
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
 
     <script type="text/javascript">
-        //ToDo: get rid of double Subscription endpoint request, tune performance
 
         Rally.onReady(function () {
             Ext.define('CustomApp', {
@@ -44,7 +43,7 @@
                 addPickers: function() {
                     this.getSelectorBox().removeAll();
                     var defaultToDate = new Date();
-                    defaultToDate.setDate(defaultToDate.getDate() - 30);
+                    defaultToDate.setDate(defaultToDate.getDate() - 7);
 
                     this.getSelectorBox().add({
                         xtype: 'container',
@@ -92,7 +91,13 @@
 
                 updateView: function() {
                     this.getDisplayBox().removeAll();
-                    this.loadRevisions();
+                    if (this._subscriptionRevHistory)
+                        this.loadRevisions();
+                    else {
+                        Rally.ui.notify.Notifier.showError({
+                            message: "Couldn't get revision history model. Please refresh the page to try again."
+                        });
+                    }
                 },
 
                 getRevisionsByDate: function () {
@@ -126,6 +131,9 @@
                         },
                         failure: function () {
                             console.log("oh noes!");
+                            Rally.ui.notify.Notifier.showError({
+                                message: "Revisions request timed out. Please click Get Revisions again."
+                            });
                         }
                     }).always(function(){this.setLoading(false);}, this);
                 },
@@ -144,9 +152,19 @@
 
                     subStore.load().then({
                         success: this._getRevHistoryModel,
+                        failure: function() {
+                            Rally.ui.notify.Notifier.showError({
+                                message: "Couldn't get revision history model. Please refresh the page."
+                            });
+                        },
                         scope: this
                     }).then({
                         success: this._onRevHistoryModelCreated,
+                        failure: function() {
+                            Rally.ui.notify.Notifier.showError({
+                                message: "Couldn't get revision history. Please refresh the page."
+                            });
+                        },
                         scope: this
                     }).then({
                         success: this._onRevHistoryModelLoaded,
