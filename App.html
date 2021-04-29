@@ -14,6 +14,7 @@
                 componentCls: 'app',
                 _subscriptions: [],
                 _subscriptionRevHistory: null,
+                _revisions: null,
                 items: [
                     { xtype: 'container', itemId: 'selector_box' },
                     { xtype: 'container', itemId: 'display_box' }
@@ -78,6 +79,15 @@
                                 scope: this
                             }
                         }, {
+                            xtype: 'rallybutton',
+                            itemId: 'exportButton',
+                            text: 'Export',
+                            margin: '0 10 0 0',
+                            listeners: {
+                                click: this.exportCSV,
+                                scope: this
+                            }
+                        }, {
                             xtype: 'component',
                             html: 'Select dates. Click "Get Revisions". Click again if no data after load.',
                             style: {
@@ -127,6 +137,7 @@
 
                     this.getRevisionsByDate().then({
                         success: function (results) {
+                            that._revisions = results[0];
                             that._makeGrid(results);
                         },
                         failure: function () {
@@ -136,6 +147,32 @@
                             });
                         }
                     }).always(function(){this.setLoading(false);}, this);
+                },
+
+                exportCSV: function() {
+                    var csvFile = '';
+                    var filename = 'revisions.csv';
+                    for (var i = 0; i < this._revisions.length; i++) {
+                        csvFile += this._revisions[i].data.User._refObjectName + ",";
+                        csvFile += this._revisions[i].data.CreationDate.toDateString() + ",";
+                        csvFile += this._revisions[i].data.Description + "\n";
+                    }
+                    var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+                    if (navigator.msSaveBlob) { // IE 10+
+                        navigator.msSaveBlob(blob, filename);
+                    } else {
+                        var link = document.createElement("a");
+                        if (link.download !== undefined) { // feature detection
+                            // Browsers that support HTML5 download attribute
+                            var url = URL.createObjectURL(blob);
+                            link.setAttribute("href", url);
+                            link.setAttribute("download", filename);
+                            link.style.visibility = 'hidden';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                    }
                 },
 
                 launch: function () {
