@@ -89,7 +89,7 @@
                             }
                         }, {
                             xtype: 'component',
-                            html: 'Select dates. Click "Get Revisions". Click again if no data after load.',
+                            html: 'Select dates. Click "Get Revisions". Click again if no data.',
                             style: {
                                 display: 'inline-block',
                                 backgroundColor: 'lemonchiffon',
@@ -150,10 +150,16 @@
                 },
 
                 exportCSV: function() {
-                    var clean = function (value) {
-                        return '"' + value.toString().replace(",", ";") + '"';
+                    var clean = function (val) {
+                        var quotedString;
+                        if (val) {
+                            quotedString = '"' + val.toString().replace(",", ";") + '"';
+                        } else {
+                            quotedString = '""';
+                        }
+                        return quotedString;
                     };
-                    var csvFile = 'User, Revision Number, Date, Description\n';
+                    var csvFile = '"User", "Revision Number", "Date", "Description"\n';
                     var filename = 'revisions.csv';
                     for (var i = 0; i < this._revisions.length; i++) {
                         csvFile += clean(this._revisions[i].data.User._refObjectName) + ",";
