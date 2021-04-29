@@ -150,12 +150,16 @@
                 },
 
                 exportCSV: function() {
-                    var csvFile = '';
+                    var clean = function (value) {
+                        return '"' + value.toString().replace(",", ";") + '"';
+                    };
+                    var csvFile = 'User, Revision Number, Date, Description\n';
                     var filename = 'revisions.csv';
                     for (var i = 0; i < this._revisions.length; i++) {
-                        csvFile += this._revisions[i].data.User._refObjectName + ",";
-                        csvFile += this._revisions[i].data.CreationDate.toDateString() + ",";
-                        csvFile += this._revisions[i].data.Description + "\n";
+                        csvFile += clean(this._revisions[i].data.User._refObjectName) + ",";
+                        csvFile += clean(this._revisions[i].data.RevisionNumber) + ",";
+                        csvFile += clean(this._revisions[i].data.CreationDate.toDateString()) + ",";
+                        csvFile += clean(this._revisions[i].data.Description) + "\n";
                     }
                     var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
                     if (navigator.msSaveBlob) { // IE 10+
